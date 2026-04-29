@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8">
+<title>Сиқырлы шаршы PRO</title>
+<style>
+    body { font-family: Arial; background:#0f172a; color:white; text-align:center; }
+    .grid { display:grid; grid-template-columns:repeat(3,90px); gap:8px; justify-content:center; margin:20px; }
+    .cell { width:90px; height:90px; background:#1e293b; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:24px; }
+    .numbers { display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin:20px; }
+    .num { width:60px; height:60px; background:#22c55e; border-radius:10px; display:flex; align-items:center; justify-content:center; cursor:grab; }
+    button { padding:10px 20px; margin:5px; border:none; border-radius:8px; cursor:pointer; }
+</style>
+</head>
+<body>
+
+<h1>🧩 Сиқырлы шаршы (Деңгеймен)</h1>
+<h3 id="level">1-деңгей</h3>
+
+<div class="grid" id="grid"></div>
+<div class="numbers" id="numbers"></div>
+
+<button onclick="checkSquare()">Тексеру</button>
+<button onclick="resetGame()">Қайта бастау</button>
+
+<p id="result"></p>
+
+<script>
+let level = 1;
+
+const levels = [
+    { nums:[1,2,3,4,5,6,7,8,9] },
+    { nums:[2,4,6,8,10,12,14,16,18] },
+    { nums:[3,5,7,9,11,13,15,17,19] }
+];
+
+function initGrid() {
+    const grid = document.getElementById('grid');
+    grid.innerHTML = '';
+    for (let i=0;i<9;i++) {
+        const cell = document.createElement('div');
+        cell.className='cell';
+        cell.ondrop=drop;
+        cell.ondragover=allowDrop;
+        grid.appendChild(cell);
+    }
+}
+
+function renderNumbers() {
+    const container = document.getElementById('numbers');
+    container.innerHTML='';
+
+    levels[level-1].nums.forEach(n=>{
+        const div=document.createElement('div');
+        div.className='num';
+        div.innerText=n;
+        div.draggable=true;
+        div.id='n'+n;
+
+        div.ondragstart=(e)=>{
+            e.dataTransfer.setData('text',div.id);
+        };
+
+        container.appendChild(div);
+    });
+}
+
+function allowDrop(e){ e.preventDefault(); }
+
+function drop(e){
+    e.preventDefault();
+    const id=e.dataTransfer.getData('text');
+    const el=document.getElementById(id);
+
+    if(e.target.classList.contains('cell') && e.target.innerHTML===''){
+        e.target.appendChild(el);
+    }
+}
+
+function getValues(){
+    let v=[];
+    document.querySelectorAll('.cell').forEach(c=>{
+        v.push(c.firstChild ? Number(c.firstChild.innerText) : 0);
+    });
+    return v;
+}
+
+function checkSquare(){
+    let v=getValues();
+
+    if(v.includes(0)){
+        result.innerText='Толық толтыр!';
+        return;
+    }
+
+    let t=v[0]+v[1]+v[2];
+
+    let checks=[
+        v[0]+v[1]+v[2], v[3]+v[4]+v[5], v[6]+v[7]+v[8],
+        v[0]+v[3]+v[6], v[1]+v[4]+v[7], v[2]+v[5]+v[8],
+        v[0]+v[4]+v[8], v[2]+v[4]+v[6]
+    ];
+
+    let ok=checks.every(x=>x===t);
+
+    if(ok){
+        result.innerText='Дұрыс! 🎉 Келесі деңгей!';
+        nextLevel();
+    } else {
+        result.innerText='Қате!';
+    }
+}
+
+function nextLevel(){
+    if(level<levels.length){
+        level++;
+        document.getElementById('level').innerText=level+'-деңгей';
+        resetGame();
+    } else {
+        result.innerText='Сен бәрін өттің! 🏆';
+    }
+}
+
+function resetGame(){
+    initGrid();
+    renderNumbers();
+    result.innerText='';
+}
+
+initGrid();
+renderNumbers();
+// ДҰРЫС ЖАУАПТАР
+const solutions = [
+    [8,1,6,3,5,7,4,9,2],
+    [16,2,12,6,10,14,8,18,4],
+    [17,3,13,7,11,15,9,19,5]
+];
+
+function showAnswer(){
+    initGrid();
+    const cells = document.querySelectorAll('.cell');
+    solutions[level-1].forEach((val,i)=>{
+        const div=document.createElement('div');
+        div.className='num';
+        div.innerText=val;
+        cells[i].appendChild(div);
+    });
+}
+
+</script>
+
+<button onclick="showAnswer()">Жауабын көру</button>
+
+</body>
+</html>
